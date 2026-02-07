@@ -1,0 +1,7 @@
+requests>=2.28.0
+
+# 视频下载 (字幕提取需要)
+yt-dlp>=2023.0.0       # 抖音视频下载
+
+# 系统依赖 (需要手动安装):
+# - ffmpeg: brew install ffmpeg (音频转换)
