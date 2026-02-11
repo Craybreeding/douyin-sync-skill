@@ -47,7 +47,35 @@ def download_video(video_id: str, output_path: str) -> bool:
             print("❌ 未找到视频")
             return False
 
-        video_resp = requests.get(video_urls[0], stream=True, timeout=60)
+        # 代理支持
+        proxies = {}
+        http_proxy = os.environ.get("HTTP_PROXY") or os.environ.get("http_proxy")
+        if http_proxy:
+            proxies = {"http": http_proxy, "https": http_proxy}
+            print(f"   使用代理: {http_proxy}")
+
+        # 重试机制 (3次)
+        video_resp = None
+        for attempt in range(3):
+            try:
+                video_resp = requests.get(
+                    video_urls[0],
+                    stream=True,
+                    timeout=180,  # 增加到 180 秒
+                    proxies=proxies if proxies else None
+                )
+                break
+            except requests.exceptions.Timeout:
+                if attempt < 2:
+                    print(f"   ⚠️ 超时，重试 ({attempt + 2}/3)...")
+                else:
+                    raise
+            except requests.exceptions.RequestException as e:
+                if attempt < 2:
+                    print(f"   ⚠️ 请求失败，重试 ({attempt + 2}/3)... {e}")
+                else:
+                    raise
+
         with open(output_path, 'wb') as f:
             for chunk in video_resp.iter_content(chunk_size=8192):
                 f.write(chunk)
